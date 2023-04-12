@@ -24,3 +24,7 @@ aes-gcm = "0.10.1"
 generic-array = "0.14.6"
 serde_derive = "1.0"
 tera = "1.11.0"
+
+#dépendances pour le mail 
+lettre = "0.9"
+lettre_email = "0.9"

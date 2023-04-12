@@ -2,7 +2,7 @@ use std::{io};
 use actix_files::{Files, NamedFile};
 use serde::{Deserialize};
 use askama::Template;
-use std::path::{Path, PathBuf};
+use std::path::{PathBuf};
 use actix_web::{
     get,
     http::{
@@ -18,11 +18,9 @@ use mysql::*;
 use mysql::prelude::*;
 use rand::{thread_rng, Rng};
 use rand::distributions::Alphanumeric;
-use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 use actix_web::HttpResponse;
 use std::fmt::Debug;
-use std::fmt;
 use rand::distributions::DistString;
 use aes_gcm::{
     aead::{Aead, KeyInit, OsRng},
@@ -31,11 +29,11 @@ use aes_gcm::{
 use argon2::{self, Config};
 use generic_array::{GenericArray, sequence::GenericSequence};
 
-////////////////////////////////////////////////////
 
-use std::future::Future;
-
-
+//Dépendances pour le mail
+use lettre::smtp::authentication::Credentials;
+use lettre::{SmtpClient, Transport};
+use lettre_email::EmailBuilder;
 ////////////////////////////////////////////////////
 
 #[derive(Debug, PartialEq, Eq)]
@@ -506,7 +504,7 @@ let aes = dechiffrement(log_extrait_clefs_aes, x , log_extrait_sel_gcm);
         
     
          
-    if (log_extrait_password != aes){
+    if log_extrait_password != aes{
     
     	println!("oh tes fatiguer minot"); //insere la fonction retour la 
     }
@@ -598,378 +596,10 @@ async fn submit_form(form: web::Form<MyForm>) -> impl Responder {
     let hash = &form.hash;
     //let password = &form.password;
     println!("Le hash html est: {}", hash);
-    let salt_value = "salut".to_string(); 
+    let _salt_value = "salut".to_string(); 
     //println!("{}", password);
     HttpResponse::Found().header("LOCATION", "/templates/menu1.html").finish()
 }
-/*
-/////////////////////////////////////////BDD//////////////////////////////////////////////////
-#[derive(Deserialize)]
-struct BDD {
-    name: String,
-    surname : String,
-}
-
-///////////////////////////////////////////AJOUTER///////////////////////////////////////////////////////////
-
-fn ajouter() -> &'static str {
-    "<!DOCTYPE html>
-    <html>
-        <head>
-            <meta charset=\"UTF-8\">
-            <title>BDD Bifrost</title>
-        </head>
-        <body>
-        <h1>Ajouter un user</h1>
-        <form id=\"my-form\">
-            <label for=\"name\">Nom:</label>
-            <input type=\"text\" id=\"name\" name=\"name\">
-            <label for=\"surname\">Prénom:</label>
-            <input type=\"text\" id=\"surname\" name=\"surname\">
-            <button type=\"submit\">Ajouter</button>
-
-
-        </form>
-            <script>
-                const form = document.getElementById('my-form');
-                form.addEventListener('submit', (event) => {
-                    event.preventDefault();
-                    const formData = new FormData(form);
-                    fetch('/ADD', {
-                        method: 'POST',
-                        headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-                                 },
-                        body: new URLSearchParams(formData)
-    
-                    })
-                    .then(response => {
-                        // traitement de la réponse ici
-                        console.log(response.text());
-                        // redirection de l'utilisateur
-                        window.location.href = 'http://127.0.0.1:8080/BDD';
-                    })
-                    .catch(error => console.error(error));
-                });
-        
-            </script>
-        </body>
-    </html>"
-}
-
-async fn add_user() -> io::Result<impl Responder> {
-    let html = ajouter();
-    Ok(HttpResponse::Ok().body(html))
-}
-
-
-async fn ajout(db: web::Data<Pool>, form_data: web::Form<BDD>) -> HttpResponse {
-    let nom = form_data.name.to_string();
-    println!("Nom: {}", nom);
-    let prenom = form_data.surname.to_string();
-    println!("Prenom: {}", prenom);
-    
-    let mut conn = db.get_conn().unwrap();
-    conn.exec_drop(
-        r"INSERT INTO bifrost (nom, prenom) VALUES (:nom, :prenom)",
-        params! {
-            "nom" => nom,
-            "prenom" => prenom,
-        },
-    ).unwrap();
-
-    HttpResponse::Found()
-        .header("Location", "/")
-        .finish()
-}
-
-///////////////////////////////////////////PAGE BDD///////////////////////////////////////////////////////////
-
-fn see_bdd(result: Vec<(String, String)>) -> String {
-    let html = format!(
-        r#"
-        <!DOCTYPE html>
-        <html>
-            <head>
-                <meta charset="UTF-8">
-                <title>BDD USER Bifrost</title>
-                <link rel="stylesheet" type="text/css" href="templates/marre.css">
-                <style>
-                    table {{
-                        border-collapse: collapse;
-                    }}
-                    table, th, td {{
-                        border: 1px solid black;
-                    }}
-                    caption {{
-                        text-align: center;
-                    }}
-                </style>
-            </head>
-            <body>
-                <caption>Liste des noms et prénoms</caption>
-                <input type="button" onclick="window.location.href='http://127.0.0.1:8080/templates/menu1.html'" value="Menu">
-                <input type="button" onclick="window.location.href='http://127.0.0.1:8080/ADD'" value="Ajouter User">
-                <input type="button" onclick="window.location.href='http://127.0.0.1:8080/delete'" value="Supprimer User">
-                <input type="button" onclick="window.location.href='http://127.0.0.1:8080/modifier'" value="Modifier User">
-                <table>
-                    <tr>
-                        <th>Nom</th>
-                        <th>Prénom</th>
-                    </tr>
-                    {}
-                </table>
-            </body>
-        </html>
-        "#,
-        result
-            .into_iter()
-            .map(|(name, surname)| {
-                format!(
-                    r#"
-                    <tr>
-                        <td>{}</td>
-                        <td>{}</td>
-                    </tr>
-                    "#,
-                    name, surname
-                )
-            })
-            .collect::<String>()
-    );
-
-    html
-}
-
-async fn BDD(db: web::Data<Pool>) -> impl Responder {
-    let mut conn = db.get_conn().unwrap();
-
-    let query = "SELECT nom, prenom FROM bifrost";
-    let result = conn.query_map(query, |(name, surname)| (name, surname)).unwrap();
-
-    let html_content = see_bdd(result);
-    HttpResponse::Ok().body(html_content)
-}
-
-///////////////////////////////////////////SUPPRIMER ///////////////////////////////////////////////////////////
-
-fn supprimer() -> &'static str {
-    "<!DOCTYPE html>
-    <html>
-        <head>
-            <meta charset=\"UTF-8\">
-            <title>Supprimer user Bifrost</title>
-        </head>
-        <body>
-        <h1>Supprimer un user</h1>
-        <form id=\"my-form\">
-            <label for=\"name\">Nom:</label>
-            <input type=\"text\" id=\"name\" name=\"name\">
-            <label for=\"surname\">Prénom:</label>
-            <input type=\"text\" id=\"surname\" name=\"surname\">
-            <button type=\"submit\">Supprimer</button>
-            
-
-
-        </form>
-            <script>
-                const form = document.getElementById('my-form');
-                form.addEventListener('submit', (event) => {
-                    event.preventDefault();
-                    const formData = new FormData(form);
-                    fetch('/delete', {
-                        method: 'POST',
-                        headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-                                 },
-                        body: new URLSearchParams(formData)
-    
-                    })
-                .then(response => {
-                    // traitement de la réponse ici
-                    console.log(response.text());
-                    // redirection de l'utilisateur
-                    window.location.href = 'http://127.0.0.1:8080/BDD';
-                })
-                .catch(error => console.error(error));
-            });
-        
-            </script>
-        </body>
-    </html>"
-}
-
-async fn delete_user() -> io::Result<impl Responder> {
-    let html = supprimer();
-    Ok(HttpResponse::Ok().body(html))
-}
-
-
-async fn delete(db: web::Data<Pool>, form_data: web::Form<BDD>) -> HttpResponse {
-    let nom = form_data.name.to_string();
-    println!("Nom: {}", nom);
-    let prenom = form_data.surname.to_string();
-    println!("Prenom: {}", prenom);
-    
-    let mut conn = db.get_conn().unwrap();
-    conn.exec_drop(
-        r"DELETE FROM bifrost WHERE nom = :nom AND prenom = :prenom",
-        params! {
-            "nom" => nom,
-            "prenom" => prenom,
-        },
-    ).unwrap();
-
-    HttpResponse::Found()
-        .header("Location", "/")
-        .finish()
-}
-
-
-///////////////////////////////////////////MODIFIER///////////////////////////////////////////////////////////
-
-fn modify() -> &'static str {
-    "<!DOCTYPE html>
-    <html>
-        <head>
-            <meta charset=\"UTF-8\">
-            <title>Modifier user Bifrost</title>
-        </head>
-        <body>
-        <h1>Modifier un user</h1>
-        <form id=\"my-form\">
-            <label for=\"name\">Nom:</label>
-            <input type=\"text\" id=\"name\" name=\"name\">
-            <label for=\"surname\">Prénom:</label>
-            <input type=\"text\" id=\"surname\" name=\"surname\">
-            <button type=\"submit\">Modifier</button>
-
-
-        </form>
-            <script>
-                const form = document.getElementById('my-form');
-                form.addEventListener('submit', (event) => {
-                    event.preventDefault();
-                    const formData = new FormData(form);
-                    fetch('/modifier', {
-                        method: 'POST',
-                        headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-                                 },
-                        body: new URLSearchParams(formData)
-    
-                    })
-
-                    .then(response => {
-                        // traitement de la réponse ici
-                        console.log(response.text());
-                        // redirection de l'utilisateur
-                        window.location.href = 'http://127.0.0.1:8080/ADD2';
-                    })
-                    .catch(error => console.error(error));
-                });
-        
-            </script>
-        </body>
-    </html>"
-}
-
-
-async fn modifier_user() -> io::Result<impl Responder> {
-    let html = modify();
-    Ok(HttpResponse::Ok().body(html))
-}
-
-
-async fn modifier(db: web::Data<Pool>, form_data: web::Form<BDD>) -> HttpResponse {
-    let nom = form_data.name.to_string();
-    println!("Nom: {}", nom);
-    let prenom = form_data.surname.to_string();
-    println!("Prenom: {}", prenom);
-    
-    let mut conn = db.get_conn().unwrap();
-    conn.exec_drop(
-        r"DELETE FROM bifrost WHERE nom = :nom AND prenom = :prenom",
-        params! {
-            "nom" => nom,
-            "prenom" => prenom,
-        },
-    ).unwrap();
-
-    HttpResponse::Found()
-        .header("Location", "/")
-        .finish()
-}
-
-fn modify2() -> &'static str {
-    "<!DOCTYPE html>
-    <html>
-        <head>
-            <meta charset=\"UTF-8\">
-            <title>BDD Bifrost</title>
-        </head>
-        <body>
-        <h1>Ajouter un user</h1>
-        <form id=\"my-form\">
-            <label for=\"name\">Nom:</label>
-            <input type=\"text\" id=\"name\" name=\"name\">
-            <label for=\"surname\">Prénom:</label>
-            <input type=\"text\" id=\"surname\" name=\"surname\">
-            <button type=\"submit\">Ajouter</button>
-
-        </form>
-            <script>
-                const form = document.getElementById('my-form');
-                form.addEventListener('submit', (event) => {
-                    event.preventDefault();
-                    const formData = new FormData(form);
-                    fetch('/ADD2', {
-                        method: 'POST',
-                        headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-                                 },
-                        body: new URLSearchParams(formData)
-    
-                    })
-                    .then(response => {
-                        // traitement de la réponse ici
-                        console.log(response.text());
-                        // redirection de l'utilisateur
-                        window.location.href = 'http://127.0.0.1:8080/BDD';
-                    })
-                    .catch(error => console.error(error));
-                });
-        
-            </script>
-        </body>
-    </html>"
-}
-
-async fn add_user2() -> io::Result<impl Responder> {
-    let html = modify2();
-    Ok(HttpResponse::Ok().body(html))
-}
-
-
-async fn ajout2(db: web::Data<Pool>, form_data: web::Form<BDD>) -> HttpResponse {
-    let nom = form_data.name.to_string();
-    println!("Nom: {}", nom);
-    let prenom = form_data.surname.to_string();
-    println!("Prenom: {}", prenom);
-    
-    let mut conn = db.get_conn().unwrap();
-    conn.exec_drop(
-        r"INSERT INTO bifrost (nom, prenom) VALUES (:nom, :prenom)",
-        params! {
-            "nom" => nom,
-            "prenom" => prenom,
-        },
-    ).unwrap();
-
-    HttpResponse::Found()
-        .header("Location", "/")
-        .finish()
-}*/
 /////////////////////////////////////////BDD//////////////////////////////////////////////////
 #[derive(Deserialize)]
 struct BDD {
@@ -977,7 +607,7 @@ struct BDD {
 }
 //////////////////////////////////////////PAGE BDD///////////////////////////////////////////////////////////
 
-fn see_bdd(result: Vec<(String)>) -> String {
+fn see_bdd(result: Vec<String>) -> String {
     let html = format!(
         r#"
         <!DOCTYPE html>
@@ -1072,7 +702,7 @@ fn see_bdd(result: Vec<(String)>) -> String {
         "#,
         result
         .into_iter()
-        .map(|(login)| { // utilise la première valeur du tuple (le login)
+        .map(|login| { // utilise la première valeur du tuple (le login)
             format!(
                 r#"
                     <tr>
@@ -1107,40 +737,102 @@ fn supprimer() -> &'static str {
         <head>
             <meta charset=\"UTF-8\">
             <title>Supprimer user Bifrost</title>
+            <style>
+                body {
+                    margin-top: 20%;
+                    background-image: url('templates/css/img.png');
+                    background-repeat: no-repeat;
+                    background-size: cover;
+                }
+                h1 {
+                    text-align: center;
+                    color: #A52A2A;
+                    text-decoration: underline solid #A52A2A;
+                    font-family: Impact, 'Arial Black', Arial, Verdana, sans-serif;
+                    letter-spacing: 5px;
+                    font-size: 40px;
+                }
+                .input {
+                    font-family: FontAwesome, 'Roboto', sans-serif;
+                    outline: 0;
+                    background: #f2f2f2;
+                    width: 22%;
+                    border: 0;
+                    margin-left: 40%;
+                    padding: 15px;
+                    box-sizing: border-box;
+                    font-size: 14px;
+                  border-radius:10px;
+                  display: block;
+                    
+                  }
+                .button{
+                    font-family: 'Titillium Web', sans-serif;
+                    font-size: 14px;
+                    font-weight: bold;
+                    letter-spacing: .1em;
+                    outline: 0;
+                    background: #B22222;
+                    width: 22%;
+                    border: 0;
+                    border-radius:30px;
+                    margin-left: 40%;
+                    padding: 15px;
+                    color: #FFFFFF;
+                    -webkit-transition: all 0.3 ease;
+                    transition: all 0.3 ease;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    display: block;
+                  }
+
+                .label{
+                    text-align: center;
+                    color: #A52A2A;
+                    font-size: 20px;
+                    font-weight: bold;
+                    font-family: Impact, 'Arial Black', Arial, Verdana,  
+                    display: block;
+                    margin-left: 40%;
+                }
+            </style>
         </head>
         <body>
-        <h1>Supprimer un user</h1>
-        <form id=\"my-form\">
-            <label for=\"login\">Login à supprimer:</label>
-            <input type=\"text\" id=\"login\" name=\"login\">
-            <button type=\"submit\">Supprimer</button>
-        </form>
+            <h1>Supprimer un user</h1>
+            <form id=\"my-form\">
+                <br>
+                <label class=\"label\" for=\"login\">User à supprimer:</label>
+                <br>
+                <br>
+                <input type=\"text\" id=\"login\" class=\"input\" name=\"login\">
+                <br>
+                <button class=\"button\" type=\"submit\">Supprimer</button>
+            </form>
             <script>
-                const form = document.getElementById('my-form');
-                form.addEventListener('submit', (event) => {
+                const form = document.getElementById(\'my-form\');
+                form.addEventListener(\'submit\', (event) => {
                     event.preventDefault();
                     const formData = new FormData(form);
-                    fetch('/delete', {
-                        method: 'POST',
+                    fetch(\'/delete\', {
+                        method: \'POST\',
                         headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-                                 },
+                            \'Content-Type\': \'application/x-www-form-urlencoded\'
+                        },
                         body: new URLSearchParams(formData)
-    
                     })
-                .then(response => {
-                    // traitement de la réponse ici
-                    console.log(response.text());
-                    // redirection de l'utilisateur
-                    window.location.href = 'http://127.0.0.1:8080/templates/menu1.html';
-                })
-                .catch(error => console.error(error));
-            });
-        
+                    .then(response => {
+                        // traitement de la réponse ici
+                        console.log(response.text());
+                        // redirection de l'utilisateur
+                        window.location.href = \'http://127.0.0.1:8080/templates/menu1.html\';
+                    })
+                    .catch(error => console.error(error));
+                });
             </script>
         </body>
     </html>"
 }
+
 
 async fn delete_user() -> io::Result<impl Responder> {
     let html = supprimer();
@@ -1173,13 +865,76 @@ fn changer() -> &'static str {
         <head>
             <meta charset=\"UTF-8\">
             <title>Change password</title>
+            <style>
+            body {
+                margin-top: 20%;
+                background-image: url('templates/css/img.png');
+                background-repeat: no-repeat;
+                background-size: cover;
+            }
+            h1 {
+                text-align: center;
+                color: #A52A2A;
+                text-decoration: underline solid #A52A2A;
+                font-family: Impact, 'Arial Black', Arial, Verdana, sans-serif;
+                letter-spacing: 5px;
+                font-size: 40px;
+            }
+            .input {
+                font-family: FontAwesome, 'Roboto', sans-serif;
+                outline: 0;
+                background: #f2f2f2;
+                width: 22%;
+                border: 0;
+                margin-left: 40%;
+                padding: 15px;
+                box-sizing: border-box;
+                font-size: 14px;
+              border-radius:10px;
+              display: block;
+                
+              }
+            .button{
+                font-family: 'Titillium Web', sans-serif;
+                font-size: 14px;
+                font-weight: bold;
+                letter-spacing: .1em;
+                outline: 0;
+                background: #B22222;
+                width: 22%;
+                border: 0;
+                border-radius:30px;
+                margin-left: 40%;
+                padding: 15px;
+                color: #FFFFFF;
+                -webkit-transition: all 0.3 ease;
+                transition: all 0.3 ease;
+                cursor: pointer;
+                transition: all 0.2s;
+                display: block;
+              }
+
+            .label{
+                text-align: center;
+                color: #A52A2A;
+                font-size: 20px;
+                font-weight: bold;
+                font-family: Impact, 'Arial Black', Arial, Verdana,  
+                display: block;
+                margin-left: 40%;
+            }
+        </style>
         </head>
         <body>
         <h1>Modifier User Bifrost</h1>
         <form id=\"my-form\">
-            <label for=\"login\">Quel user doit être modifier?</label>
-            <input type=\"text\" id=\"login\" name=\"login\">
-            <button type=\"submit\">Supprimer</button>
+            <br>
+            <label class=\"label\" for=\"login\">User à modifier :</label>
+            <br>
+            <br>
+            <input class=\"input\" type=\"text\" id=\"login\" name=\"login\">
+            <br>
+            <button class=\"button\" type=\"submit\">Modifier</button>
         </form>
             <script>
                 const form = document.getElementById('my-form');
@@ -1230,6 +985,52 @@ async fn change(db: web::Data<Pool>, form_data: web::Form<BDD>) -> HttpResponse 
         .finish()
 }
 
+//////////MAIL BIFROST/////////////////////////////////////
+async fn assistance() -> io::Result<impl Responder> {
+    let html = include_str!("../templates/assistance.html");
+    Ok(HttpResponse::Ok().body(html))
+}
+
+#[derive(Deserialize)]
+struct Mail {
+    nom: String,
+    prenom: String,
+    email: String,
+    message: String,
+}
+
+async fn bifrost_mail(form_data: web::Form<Mail>) -> /*impl Responder*/std::result::Result<HttpResponse, Box<dyn std::error::Error>> {
+    let nom= form_data.nom.to_string();
+    println!("Nom: {}", nom);
+
+    let prenom= form_data.prenom.to_string();
+    println!("Prénom: {}", prenom);
+
+    let adresse= form_data.email.to_string();
+    println!("Adresse mail: {}", adresse);
+
+    let message= form_data.message.to_string();
+    println!("Message pour le destinataire: {}", message);
+
+    //Code pour envoyer le mail
+    let email = EmailBuilder::new()
+    .to("bifrost@mailfence.com")
+    .from(adresse)
+    .subject("Bonjour Bifrost Family")
+    .text(message)
+    .build()
+    .unwrap();
+
+    let mut mailer = SmtpClient::new_simple("imap.mailfence.com")
+        .unwrap()
+        .credentials(Credentials::new("bifrost".into(), "Bifrost1234!".into()))
+        .transport();
+
+    let result = mailer.send(email.into());
+    println!("{:?}", result);
+
+    Ok(HttpResponse::Ok().content_type("text/html").body("super"))
+}
 ////////////////////////////////////////////MAIN/////////////////////////////////////////////////
 #[actix_web::main]
 async fn main() -> io::Result<()> {
@@ -1243,7 +1044,7 @@ async fn main() -> io::Result<()> {
         .service(Files::new("/templates", "templates").show_files_listing())
             // redirect
         .service(
-                web::resource("/templates/login.html").route(web::get().to(|req: HttpRequest| async move {
+                web::resource("/templates/login.html").route(web::get().to(|_req: HttpRequest| async move {
                     //println!("{req:?}");
                     HttpResponse::Found()
                         .insert_header((header::LOCATION, "templates/login.html"))
@@ -1267,6 +1068,10 @@ async fn main() -> io::Result<()> {
             .service(web::resource("/change").route(web::get().to(change_user)).route(web::post().to(change)))
             //.service(web::resource("/modifier").route(web::get().to(modifier_user)).route(web::post().to(modifier)))
             //.service(web::resource("/ADD2").route(web::get().to(add_user2)).route(web::post().to(ajout2)))
+            //.service(web::resource("/assistance.html").route(web::post().to(mail)))
+            .service(web::resource("/assistance.html").route(web::get().to(assistance))
+                                      .route(web::post().to(bifrost_mail)))
+
     })
     .bind(("127.0.0.1", 8080))?
     .workers(2)
