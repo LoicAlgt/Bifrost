@@ -1,0 +1,181 @@
+async fn on_submit_form(form: web::Form<MyForm>) -> /*impl Responder*/std::result::Result<NamedFile, Box<dyn std::error::Error>> {
+  let value = unsafe { THING_TO_SHOW.clone() }; // call the unsafe function to obtain the value of SEL_HTML
+  let valuebis = value.unwrap_or_default();
+    let url = "mysql://lolo:lolo@localhost:3306/loic";
+    let pool = Pool::new(url)?;
+    let mut conn = pool.get_conn()?;
+    let query = format!("SELECT * FROM password WHERE login = '{}'", valuebis);	
+	println!("Test");
+
+    let hash = &form.hash;
+        let selected_passwords2 = conn
+        .query_map(
+            &query,
+            |(sel_1, sel_2, sel_gcm, clefs, login, passw)| {
+                Password { sel_1, sel_2, sel_gcm, clefs, login, passw }
+            },
+        )?;
+            let selected_passwords3 = conn
+        .query_map(
+            &query,
+            |(sel_1, sel_2, sel_gcm, clefs, login, passw)| {
+                Password { sel_1, sel_2, sel_gcm, clefs, login, passw }
+            },
+        )?;
+            let selected_passwords4 = conn
+        .query_map(
+            &query,
+            |(sel_1, sel_2, sel_gcm, clefs, login, passw)| {
+                Password { sel_1, sel_2, sel_gcm, clefs, login, passw }
+            },
+        )?;
+            let selected_passwords5 = conn
+        .query_map(
+            &query,
+            |(sel_1, sel_2, sel_gcm, clefs, login, passw)| {
+                Password { sel_1, sel_2, sel_gcm, clefs, login, passw }
+            },
+        )?;
+        
+        
+let mut log_extrait_sel_backend = "".to_string();
+let mut log_extrait_password = "".to_string();
+let mut log_extrait_sel_gcm = "".to_string();
+let mut log_extrait_clefs_aes = "".to_string();
+
+
+
+for salting in selected_passwords2 {
+log_extrait_sel_backend.push_str(&salting.sel_2);
+}
+
+for motdepasse in selected_passwords3 {
+log_extrait_password.push_str(&motdepasse.passw);
+}
+
+for gcmsuite in selected_passwords4 {
+log_extrait_sel_gcm.push_str(&gcmsuite.sel_gcm);
+}
+
+for aesfinit in selected_passwords5 {
+log_extrait_clefs_aes.push_str(&aesfinit.clefs);
+}
+
+    println!("I'm the hashLOLO :{:?}", hash);
+    println!("ceci est le sel 2: {}", log_extrait_sel_backend);
+println!("ceci est le password: {}", log_extrait_password);
+println!("ceci est le sel-gcm: {}", log_extrait_sel_gcm);
+println!("ceci est la clef-gcm: {}", log_extrait_clefs_aes);
+let y= log_extrait_sel_backend;
+let concat = hash.to_owned() + &y.to_string();
+let x = passwordhash(y ,concat);
+let aes = dechiffrement(log_extrait_clefs_aes, x , log_extrait_sel_gcm); 
+    
+    
+    
+    println!("ceci est le password entrée: {}", aes);   
+        
+    
+         
+    if log_extrait_password != aes{
+    
+    	println!("oh tes fatiguer minot"); //insere la fonction retour la 
+        let pathE: PathBuf ="./templates/choix.html".into();
+        println!("voici le path {:?}", pathE);
+        Ok(NamedFile::open(pathE)?)
+    }
+    else {
+    //HttpResponse::Found().header("LOCATION", "/templates/menu1.html").finish()
+    let path: PathBuf="./templates/menu1.html".into();
+    Ok(NamedFile::open(path)?)}
+}
+
+
+
+///////////////////////////////////////////////////////// ancien code 
+async fn on_submit_form(form: web::Form<MyForm>) -> /*impl Responder*/std::result::Result<HttpResponse, Box<dyn std::error::Error>> {
+  let value = unsafe { THING_TO_SHOW.clone() }; // call the unsafe function to obtain the value of SEL_HTML
+  let valuebis = value.unwrap_or_default();
+    let url = "mysql://lolo:lolo@localhost:3306/loic";
+    let pool = Pool::new(url)?;
+    let mut conn = pool.get_conn()?;
+    let query = format!("SELECT * FROM password WHERE login = '{}'", valuebis);	
+	println!("Test");
+
+    let hash = &form.hash;
+        let selected_passwords2 = conn
+        .query_map(
+            &query,
+            |(sel_1, sel_2, sel_gcm, clefs, login, passw)| {
+                Password { sel_1, sel_2, sel_gcm, clefs, login, passw }
+            },
+        )?;
+            let selected_passwords3 = conn
+        .query_map(
+            &query,
+            |(sel_1, sel_2, sel_gcm, clefs, login, passw)| {
+                Password { sel_1, sel_2, sel_gcm, clefs, login, passw }
+            },
+        )?;
+            let selected_passwords4 = conn
+        .query_map(
+            &query,
+            |(sel_1, sel_2, sel_gcm, clefs, login, passw)| {
+                Password { sel_1, sel_2, sel_gcm, clefs, login, passw }
+            },
+        )?;
+            let selected_passwords5 = conn
+        .query_map(
+            &query,
+            |(sel_1, sel_2, sel_gcm, clefs, login, passw)| {
+                Password { sel_1, sel_2, sel_gcm, clefs, login, passw }
+            },
+        )?;
+        
+        
+let mut log_extrait_sel_backend = "".to_string();
+let mut log_extrait_password = "".to_string();
+let mut log_extrait_sel_gcm = "".to_string();
+let mut log_extrait_clefs_aes = "".to_string();
+
+
+
+for salting in selected_passwords2 {
+log_extrait_sel_backend.push_str(&salting.sel_2);
+}
+
+for motdepasse in selected_passwords3 {
+log_extrait_password.push_str(&motdepasse.passw);
+}
+
+for gcmsuite in selected_passwords4 {
+log_extrait_sel_gcm.push_str(&gcmsuite.sel_gcm);
+}
+
+for aesfinit in selected_passwords5 {
+log_extrait_clefs_aes.push_str(&aesfinit.clefs);
+}
+
+    println!("I'm the hashLOLO :{:?}", hash);
+    println!("ceci est le sel 2: {}", log_extrait_sel_backend);
+println!("ceci est le password: {}", log_extrait_password);
+println!("ceci est le sel-gcm: {}", log_extrait_sel_gcm);
+println!("ceci est la clef-gcm: {}", log_extrait_clefs_aes);
+let y= log_extrait_sel_backend;
+let concat = hash.to_owned() + &y.to_string();
+let x = passwordhash(y ,concat);
+let aes = dechiffrement(log_extrait_clefs_aes, x , log_extrait_sel_gcm); 
+    
+    
+    
+    println!("ceci est le password entrée: {}", aes);   
+        
+    
+         
+    if log_extrait_password != aes{
+    
+    	println!("oh tes fatiguer minot"); //insere la fonction retour la 
+    }
+    //HttpResponse::Found().header("LOCATION", "/templates/menu1.html").finish()
+    Ok(HttpResponse::Found().header("LOCATION", "/templates/menu1.html").finish())
+}
