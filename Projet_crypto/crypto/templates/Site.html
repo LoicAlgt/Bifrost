@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Demande de Certificat</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Renseignement d'adresse mail</h1>
+  </header>
+  <form id="my-form">
+    <label for="name">Nom:</label>
+    <input type="text" id="name" name="name">
+    <label for="surname">Prénom:</label>
+    <input type="text" id="surname" name="surname">
+    <label for="adresse">Adresse mail:</label>
+    <input type="text" id="adresse" name="adresse">
+    <button type="submit">Soumettre</button>
+</form>
+
+  <footer>
+    <p>&copy; 2023 Projet Cryptographie Lilian Drets Loïc Allegretti</p>
+  </footer>
+  <script src="script.js"></script>
+  <script>
+    const form = document.getElementById('my-form');
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const formData = new FormData(form);
+      fetch('/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: new URLSearchParams(formData)
+      })
+      .then(response => response.text())
+      .then(text => {
+        console.log(text);
+        // Rediriger l'utilisateur vers la nouvelle page ici
+        window.location.href = 'http://localhost:8080/verif.html';
+      })
+      .catch(error => console.error(error));
+    });
+  </script>
+  
+</body>
+</html>

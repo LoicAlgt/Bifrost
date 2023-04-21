@@ -79,6 +79,7 @@ let aes = dechiffrement(log_extrait_clefs_aes, x , log_extrait_sel_gcm);
          
     if log_extrait_password != aes{
     
+    
     	println!("oh tes fatiguer minot"); //insere la fonction retour la 
         let pathE: PathBuf ="./templates/choix.html".into();
         println!("voici le path {:?}", pathE);
@@ -179,3 +180,14 @@ let aes = dechiffrement(log_extrait_clefs_aes, x , log_extrait_sel_gcm);
     //HttpResponse::Found().header("LOCATION", "/templates/menu1.html").finish()
     Ok(HttpResponse::Found().header("LOCATION", "/templates/menu1.html").finish())
 }
+
+
+pub async fn check_code(info1_: web::Form<EmailCheck>) -> Result<NamedFile, actix_web::Error> { //J'arrive pas à print les info json de la page html 
+let code = &info1_.csr; let verif = *RANDOM_NUMBER; 
+let veristr= verif.to_string(); 
+if code == &veristr 
+{ let path: PathBuf = "./static/index.html".into(); 
+Ok(NamedFile::open(path)?) } 
+else { 
+let path_error: PathBuf = "./static/main.html".into(); 
+Ok(NamedFile::open(path_error)?) } }

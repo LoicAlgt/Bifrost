@@ -1,0 +1,29 @@
+[package]
+name = "crypto"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+actix-files = "0.6"
+actix-web = "4"
+serde = { version = "1.0.147", features = ["derive"] }
+
+#dépendances pour le mail 
+lettre = "0.9"
+lettre_email = "0.9"
+
+#Dépendance pour le random
+rand = "0.8.4"
+
+#Dépendances pour la variable globale
+lazy_static = "1.4.0"
+
+actix-web-static-files = "0.4.0"
+
+
+
+serde_derive = "1.0"
+mysql = "20.0.0"
+tera = "1.11.0"

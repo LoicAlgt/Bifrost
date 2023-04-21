@@ -5,11 +5,11 @@
   <title>Première Authentification</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta charset="utf-8">
-  <link rel="stylesheet" type="text/css" href="css/first_login.css">
+  <link rel="stylesheet" type="text/css" href="admin.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
   <link href='https://fonts.googleapis.com/css?family=Titillium+Web:400,300,600' rel='stylesheet' type='text/css'>  
   <link href='https://fonts.googleapis.com/css?family=Titillium+Web:400,300,600' rel='stylesheet' type='text/css'> 
-  <script src="js/lottie-player.js" type="text/javascript"></script>
+  <script src="lottie-player.js" type="text/javascript"></script>
 </head>
 
 <script type="text/javascript">
@@ -20,34 +20,24 @@ function gg() {
 	else if (document.getElementById('mdp').value == ""){
 		alert("Veuillez rentrer un mot de passe");
     }
-	else if(document.getElementById('username').value != "BIFROST"){
+	else if(document.getElementById('username').value != "CRYPTO"){
 		alert("Veuillez rentrer le username par defaut");
 	}
-	else if(document.getElementById('mdp').value != "BIFROST"){
+	else if(document.getElementById('mdp').value != "CRYPTO"){
 		alert("Veuillez rentrer le mot de passe par defaut");
 	}
 	else{
-		window.location.href="authentification.html"	
+		window.location.href="http://127.0.0.1:8080/BDD"	
     }
 
 }
 
-
-function makeid(length) {
-    var result           = '';
-    var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    var charactersLength = characters.length;
-    for ( var i = 0; i < length; i++ ) {
-        result += characters.charAt(Math.floor(Math.random() * charactersLength));
-    }
-    return result;
-}
 </script>
 <body class="body">	
 <div class="login-page">
   <div class="form">
 	<div class="titre">
-		<h1 align="center">BIFROST GATEWAY</h1>
+		<h1 align="center">ADMIN PAGE</h1>
 	</div>
     <form>
       <lottie-player src="https://assets4.lottiefiles.com/datafiles/XRVoUu3IX4sGWtiC3MPpFnJvZNq7lVWDCa8LSqgS/profile.json"  background="transparent"  speed="1"  style="justify-content: center;" loop  autoplay></lottie-player>

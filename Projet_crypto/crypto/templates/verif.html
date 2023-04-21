@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Mon formulaire</title>
+        <link rel="stylesheet" href="style.css">
+    </head>
+    <body>
+        <header>
+            <h1>Vérification de l'adresse mail</h1>
+          </header>
+        <form id="my-form">
+            <label for="code">Code de vérification:</label>
+            <input type="text" id="code" name="code">
+            <button type="submit">Vérification</button>
+        </form>
+        <footer>
+            <p>&copy; 2023 Projet Cryptographie Lilian Drets Loïc Allegretti</p>
+        </footer>
+        <script>
+            const form = document.getElementById('my-form');
+            form.addEventListener('submit', (event) => {
+                event.preventDefault();
+                const formData = new FormData(form);
+                fetch('/verif.html', {
+                    method: 'POST',
+                    headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+                             },
+                    //body: formData
+                    body: new URLSearchParams(formData)
+                    
+
+                })
+                .then(response => response.text())
+				.then(text => {
+				console.log(text);
+                //alert(text);
+                if (text.includes("No such file or directory (os error 2)")) {
+                window.location.href = 'http://localhost:8080/MenuCrypto.html';
+                } else {
+                //alert(text);
+                window.location.href = 'http://localhost:8080/CA.html';}
+				// Rediriger l'utilisateur vers la nouvelle page ici
+				
+				})
+				.catch(error => console.error(error));
+            });
+    
+        </script>
+    </body>
+</html>

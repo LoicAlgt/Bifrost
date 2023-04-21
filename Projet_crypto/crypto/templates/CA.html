@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Certificat</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Création du Certificat</h1>
+  </header>
+  <form id="my-form">
+    <label for="nom">Nom :</label>
+    <input type="text" id="nom" name="nom" required>
+
+    <label for="prenom">Prénom :</label>
+    <input type="text" id="prenom" name="prenom" required>
+	
+	  <label for="code">Code confirmation du mail :</label>
+    <input type="text" id="code" name="code" required>
+
+    <label for="pays">Pays :</label>
+    <input type="text" id="pays" name="pays" required>
+
+    <label for="region">Région :</label>
+    <input type="text" id="region" name="region">
+	
+	  <label for="ville">Ville :</label>
+    <input type="text" id="ville" name="ville">
+
+    <label for="organisation">Organisation :</label>
+    <input type="text" id="organisation" name="organisation">
+
+    <label for="service">Service :</label>
+    <input type="text" id="service" name="service">
+
+    <label for="adresse">Adresse mail :</label>
+    <input type="text" id="adresse" name="adresse">
+
+    <label for="mdp">Mot de passe pour votre certificat :</label>
+    <input type="text" id="mdp" name="mdp">
+
+    <button type="submit">Soumettre</button>
+    <button class= "download" onclick="telecharger()">Télecharger CA</button>
+  </form>
+  <footer>
+    <p>&copy; 2023 Projet Cryptographie Lilian Drets Loïc Allegretti</p>
+  </footer>
+  <script>
+    const form = document.getElementById('my-form');
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const formData = new FormData(form);
+      fetch('/CA.html', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: new URLSearchParams(formData)
+      })
+      .then(response => response.text())
+				.then(text => {
+				console.log(text);
+				// Rediriger l'utilisateur vers la nouvelle page ici
+				//window.location.href = 'http://localhost:8080/MenuCrypto.html';
+				})
+				.catch(error => console.error(error));
+      });
+
+      function telecharger() {
+            var nom_fichier = document.getElementById("nom").value;
+            var lien = nom_fichier + ".zip";
+            var a = document.createElement("a");
+            a.href = lien;
+            a.download = nom_fichier;
+            a.click();
+		}
+
+  </script>
+</body>
+</html>

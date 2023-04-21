@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Télécharger fichier</title>
+</head>
+<body>
+	<h1>Télécharger fichier</h1>
+	<input type="text" id="nom_fichier" placeholder="Entrez le nom du fichier">
+	<button onclick="telecharger()">Télécharger</button>
+	<script>
+		function telecharger() {
+			var nom_fichier = document.getElementById("nom_fichier").value;
+			var lien = nom_fichier;
+			var a = document.createElement("a");
+			a.href = lien;
+			a.download = nom_fichier;
+			a.click();
+		}
+	</script>
+</body>
+</html>
