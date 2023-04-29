@@ -28,6 +28,11 @@ use std::process::Command;
 
 //Variable statique
 use lazy_static::lazy_static;
+use std::sync::Mutex;
+
+//Fichier OCSP
+use std::fs::File;
+use std::io::prelude::*;
 
 
 #[get("/{filename:.*}")]
@@ -37,34 +42,23 @@ async fn files(path: web::Path<(String,)>) -> Result<NamedFile> {
 
 #[derive(Deserialize)]
 struct Information {
-    name: String,
-    surname : String,
     adresse : String,
 }
 
 //Déclaration variable globale
 lazy_static! {
-
-    pub static ref RANDOM_NUMBER: i32 = thread_rng().gen_range(10000..=30000);
-
+    static ref RANDOM_NUMBER: Mutex<i32> = Mutex::new(0);
 }
 
 async fn info_mail(form_data: web::Form<Information>) -> /*impl Responder*/std::result::Result<HttpResponse, Box<dyn std::error::Error>> {
-    let nom= form_data.name.to_string();
-    println!("Nom: {}", nom);
-    let prenom= form_data.surname.to_string();
-    println!("Prénom: {}", prenom);
     let adresse= form_data.adresse.to_string();
     println!("Adresse mail: {}", adresse);
 
-    let number = *RANDOM_NUMBER;
+    
+    let number = thread_rng().gen_range(10000..=30000);
     println!("{}",number);
 
-    //Placer number dans une variable globale
-    //unsafe {
-    //    GLOBAL_VAR = Some(number);
-    //}
-    //println!("Le nombre aléatoire est : {}", number);
+    *RANDOM_NUMBER.lock().unwrap() = number;
 
     //Code pour envoyer le mail
     let email = EmailBuilder::new()
@@ -95,7 +89,7 @@ async fn on_submit_form(form_data: web::Form<Verif>) -> std::result::Result<Name
     let value = form_data.code.to_string();
     println!("Code: {}", value); 
 
-    let val= *RANDOM_NUMBER;
+    let val= *RANDOM_NUMBER.lock().unwrap();
     let val_str = val.to_string();
     if val_str == value {
         println!("La valeur globale est égale à la valeur du formulaire.");
@@ -154,6 +148,7 @@ fn see_bdd(result: Vec<(String,String,String,String,String,String,String)>) -> S
             </head>
             <body>
                 <caption>Liste des noms et prénoms</caption>
+                <input type="button" onclick="window.location.href='http://127.0.0.1:8080/file'" value="Fichier Serveur OCSP">
                 <input type="button" onclick="window.location.href='http://127.0.0.1:8080/MenuCrypto.html'" value="Retour">
                 <table>
                     <tr>
@@ -208,6 +203,13 @@ fn see_bdd(result: Vec<(String,String,String,String,String,String,String)>) -> S
     html
 }
 
+#[get("/file")]
+async fn get_file() -> HttpResponse {
+    let mut file = File::open("Serveur/inter/index.txt").expect("Impossible d'ouvrir le fichier");
+    let mut contents = String::new();
+    file.read_to_string(&mut contents).expect("Impossible de lire le contenu du fichier");
+    HttpResponse::Ok().body(contents)
+}
 
 async fn BDD(db: web::Data<Pool>) -> impl Responder {
     let mut conn = db.get_conn().unwrap();
@@ -228,7 +230,6 @@ async fn certificat() -> io::Result<impl Responder> {
 struct Certificat {
     nom: String,
     prenom: String,
-    code: String,
     pays: String,
     region: String,
     ville: String,
@@ -242,7 +243,9 @@ fn ma_fonction(db: web::Data<Pool>, form_data: web::Form<Certificat>) {
     // Le corps de la fonction ici
     let nom = form_data.nom.to_string();
     let prenom = form_data.prenom.to_string();
-    let code = form_data.code.to_string();
+    let val= *RANDOM_NUMBER.lock().unwrap();
+    let code = val.to_string();
+    println!("{}",code);
     let pays = form_data.pays.to_string();
     let region = form_data.region.to_string();
     let ville = form_data.ville.to_string();
@@ -270,8 +273,9 @@ async fn create_certificat(db: web::Data<Pool>, form_data: web::Form<Certificat>
     println!("Nom: {}", nom);
     let prenom = form_data.prenom.to_string();
     println!("Prénom: {}", prenom);
-    let code = form_data.code.to_string();
-    println!("Code: {}", code);
+    let val= *RANDOM_NUMBER.lock().unwrap();
+    let code = val.to_string();
+    println!("Code : {}",code);
     let pays = form_data.pays.to_string();
     println!("Pays: {}", pays);
     let region = form_data.region.to_string();
@@ -386,7 +390,7 @@ async fn create_certificat(db: web::Data<Pool>, form_data: web::Form<Certificat>
 
     let output = Command::new("zip")
         .arg("-r")
-        .arg(format!("templates/{}.zip", nom))
+        .arg(format!("templates/ZIP/{}.zip", nom))
         .arg(format!("Serveur/User/{}", nom))
         .output()
         .expect("La commande a échoué");
@@ -451,15 +455,14 @@ async fn main() -> io::Result<()> {
     let db_data = web::Data::new(db_pool);
     HttpServer::new(move || {
         App::new()
+            .service(get_file)
             .app_data(db_data.clone())
             .route("/BDD", web::get().to(BDD))    
             .service(files)
             .service(web::resource("/").route(web::post().to(info_mail)))
             .service(web::resource("/verif.html").route(web::post().to(on_submit_form)))
             .service(web::resource("/CA.html").route(web::get().to(certificat)).route(web::post().to(create_certificat)))
-            .service(web::resource("/supprimer.html").route(web::get().to(supp_certificat)).route(web::post().to(supprimer)))
-    
-            
+            .service(web::resource("/supprimer.html").route(web::get().to(supp_certificat)).route(web::post().to(supprimer)))            
     })
     .bind("127.0.0.1:8080")?
     .run()

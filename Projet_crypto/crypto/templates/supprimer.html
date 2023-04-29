@@ -3,25 +3,25 @@
 <head>
   <meta charset="UTF-8">
   <title>Certificat</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
   <header>
     <h1>Supprimer un Certificat</h1>
   </header>
   <form id="my-form">
-    <label for="nom">Nom : *</label>
+    <label for="nom">Nom :</label>
     <input type="text" id="nom" name="nom" required>
 
-    <label for="prenom">Prénom : *</label>
+    <label for="prenom">Prénom :</label>
     <input type="text" id="prenom" name="prenom" required>
 	
-	<label for="code">Code confirmation du mail : *</label>
+	<label for="code">Code confirmation du mail :</label>
     <input type="text" id="code" name="code" required>
     <button type="submit">Soumettre</button>
-    <input type="button" onclick="window.location.href='http://127.0.0.1:8080/MenuCrypto.html'" value="Retour">
   </form>
   <footer>
+    <input type="button" onclick="window.location.href='http://127.0.0.1:8080/MenuCrypto.html'" value="Retour Menu">
     <p>&copy; 2023 Projet Cryptographie Lilian Drets Loïc Allegretti</p>
   </footer>
   <script>

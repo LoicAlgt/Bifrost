@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Certificat</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
   <header>
@@ -15,67 +15,78 @@
 
     <label for="prenom">Prénom :</label>
     <input type="text" id="prenom" name="prenom" required>
-	
-	  <label for="code">Code confirmation du mail :</label>
-    <input type="text" id="code" name="code" required>
 
     <label for="pays">Pays :</label>
     <input type="text" id="pays" name="pays" required>
 
     <label for="region">Région :</label>
-    <input type="text" id="region" name="region">
+    <input type="text" id="region" name="region" required>
 	
-	  <label for="ville">Ville :</label>
-    <input type="text" id="ville" name="ville">
+    <label for="ville">Ville :</label>
+    <input type="text" id="ville" name="ville" required>
 
     <label for="organisation">Organisation :</label>
-    <input type="text" id="organisation" name="organisation">
+    <input type="text" id="organisation" name="organisation" required>
 
     <label for="service">Service :</label>
-    <input type="text" id="service" name="service">
+    <input type="text" id="service" name="service" required>
 
     <label for="adresse">Adresse mail :</label>
-    <input type="text" id="adresse" name="adresse">
+    <input type="text" id="adresse" name="adresse" required>
 
     <label for="mdp">Mot de passe pour votre certificat :</label>
-    <input type="text" id="mdp" name="mdp">
+    <input type="text" id="mdp" name="mdp" required>
 
-    <button type="submit">Soumettre</button>
-    <button class= "download" onclick="telecharger()">Télecharger CA</button>
+    <button id="submit-btn" onclick="add()" type="submit">Soumettre</button>
   </form>
+    <button id="download-btn" class="download" style="display:none" onclick="telecharger()">Télécharger CA</button>
   <footer>
     <p>&copy; 2023 Projet Cryptographie Lilian Drets Loïc Allegretti</p>
   </footer>
   <script>
     const form = document.getElementById('my-form');
-    form.addEventListener('submit', (event) => {
-      event.preventDefault();
-      const formData = new FormData(form);
-      fetch('/CA.html', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        body: new URLSearchParams(formData)
-      })
-      .then(response => response.text())
-				.then(text => {
-				console.log(text);
-				// Rediriger l'utilisateur vers la nouvelle page ici
-				//window.location.href = 'http://localhost:8080/MenuCrypto.html';
-				})
-				.catch(error => console.error(error));
+    const submitBtn = document.getElementById('submit-btn');
+    const downloadBtn = document.getElementById('download-btn');
+  
+    function add() {
+      form.addEventListener('submit', (event) => {
+        event.preventDefault();
+        submitBtn.style.display = 'none';
+        downloadBtn.style.display = 'block';
+        const formData = new FormData(form);
+        fetch('/CA.html', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          body: new URLSearchParams(formData)
+        })
+        .then(response => response.text())
+        .then(text => {
+          console.log(text);
+          // Rediriger l'utilisateur vers la nouvelle page ici
+          //window.location.href = 'http://localhost:8080/MenuCrypto.html';
+        })
+        .catch(error => console.error(error));
+        alert("Votre certificat a bien été créé, vous pouvez maintenant le télécharger");
+        return false;
       });
-
-      function telecharger() {
-            var nom_fichier = document.getElementById("nom").value;
-            var lien = nom_fichier + ".zip";
-            var a = document.createElement("a");
-            a.href = lien;
-            a.download = nom_fichier;
-            a.click();
-		}
-
+    }
+  
+    downloadBtn.addEventListener('click', (event) => {
+      event.preventDefault();
+    });
+  </script>
+<script>
+    function telecharger() {
+      var nom_fichier = document.getElementById("nom").value;
+      var lien = "ZIP/"+ nom_fichier + ".zip";
+      var a = document.createElement("a");
+      a.href = lien;
+      a.download = nom_fichier;
+      a.click();
+      window.location.href = 'http://localhost:8080/MenuCrypto.html';
+    }
   </script>
 </body>
 </html>
