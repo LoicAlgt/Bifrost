@@ -507,9 +507,9 @@ async fn on_submit_form(form: web::Form<MyForm>) -> /*impl Responder*/std::resul
       if log_extrait_password != aes{
       
           println!("oh tes fatiguer minot"); //insere la fonction retour la 
-          let pathE: PathBuf ="./templates/erreur_mdp.html".into();
-          println!("voici le path {:?}", pathE);
-          Ok(NamedFile::open(pathE)?)
+          let path_e: PathBuf ="./templates/erreur_mdp.html".into();
+          println!("voici le path {:?}", path_e);
+          Ok(NamedFile::open(path_e)?)
       }
       else {
       //HttpResponse::Found().header("LOCATION", "/templates/menu1.html").finish()
@@ -679,9 +679,9 @@ fn see_bdd(result: Vec<String>) -> String {
         </head>
         <body>
             <h1>USER B!FROST</h1>
-            <input type="button" id="retour" onclick="window.location.href='http://127.0.0.1:8080/templates/menu1.html'" value="Retour">
-            <input type="button" onclick="window.location.href='http://127.0.0.1:8080/delete'" value="Supprimer User">
-            <input type="button" onclick="window.location.href='http://127.0.0.1:8080/templates/ajouter_user.html'" value="Ajouter User">
+            <input type="button" id="retour" onclick="window.location.href='http://127.0.0.1:8080/templates/menu1.html'" value="Back">
+            <input type="button" onclick="window.location.href='http://127.0.0.1:8080/delete'" value="Delete User">
+            <input type="button" onclick="window.location.href='http://127.0.0.1:8080/templates/ajouter_user.html'" value="Add User">
             <table>
                 <tr>
                     <th>Login</th>
@@ -741,7 +741,7 @@ fn supprimer() -> &'static str {
     <html>
         <head>
             <meta charset=\"UTF-8\">
-            <title>Supprimer user Bifrost</title>
+            <title>Delete user Bifrost</title>
             <style>
                 body {
                     margin-top: 20%;
@@ -803,15 +803,15 @@ fn supprimer() -> &'static str {
             </style>
         </head>
         <body>
-            <h1>Supprimer un user</h1>
+            <h1>User to delete</h1>
             <form id=\"my-form\">
                 <br>
-                <label class=\"label\" for=\"login\">User à supprimer:</label>
+                <label class=\"label\" for=\"login\">User to delete :</label>
                 <br>
                 <br>
                 <input type=\"text\" id=\"login\" class=\"input\" name=\"login\">
                 <br>
-                <button class=\"button\" type=\"submit\">Supprimer</button>
+                <button class=\"button\" type=\"submit\">Delete</button>
             </form>
             <script>
                 const form = document.getElementById(\'my-form\');
@@ -855,6 +855,628 @@ async fn delete(db: web::Data<Pool>, form_data: web::Form<BDD>) -> HttpResponse 
         params! {
             "login" => login,
             },
+    ).unwrap();
+
+    HttpResponse::Found()
+        .header("Location", "/")
+        .finish()
+}
+///////////////////////////////////////////BDD credential///////////////////////////////////////////////////////////////
+
+#[derive(Deserialize)]
+struct Credential {
+    name: String,
+    value : String,
+}
+
+//////////////////////////////////////////PAGE BDD///////////////////////////////////////////////////////////
+
+fn see_bdd2(result: Vec<(String,String)>) -> String {
+    let html = format!(
+        r#"
+        <!DOCTYPE html>
+        <html>
+        <style>
+                body {{
+                    background-image: url('templates/css/BDD4.jpg');
+                    background-repeat: no-repeat;
+                    background-size: cover;
+                    text-align: center;
+                }}
+                h1 {{
+                    text-align: center;
+                    margin-top: 50px;
+                    margin-bottom: 20px;
+                    font-size: 50px;
+                    color: white;
+                }}
+                table {{
+                    border-collapse: collapse;
+                    width: 50%;
+                    margin: 0 auto;
+                    border: 1px solid white;
+                }}
+                th, td {{
+                    text-align: center;
+                    padding: 8px;
+                    font-size: 40px;
+                    color: white;
+                    border: 1px solid white;
+                    
+                }}
+                th {{
+                    text-align: center;
+                    color: white;
+                    font-size: 50px;
+                }}
+                input[type="button"] {{
+                    margin: 10px;
+                    background-color: white;
+                    color: black;
+                    border: none;
+                    padding: 10px 20px;
+                    font-size: 20px;
+                    cursor: pointer;
+                    border-radius: 5px;
+                }}
+                #retour {{
+                    position: absolute;
+                    top: 20px;
+                    left: 20px;
+                    background-color: white;
+                    color: black;
+                    border: none;
+                    padding: 10px 20px;
+                    font-size: 20px;
+                    cursor: pointer;
+                    border-radius: 5px;
+                }}
+            </style>
+    
+            <head>
+                <meta charset="UTF-8">
+                <title>BDD USER Bifrost</title>
+                <link rel="stylesheet" type="text/css" href="templates/marre.css">
+                <style>
+                    table {{
+                        border-collapse: collapse;
+                    }}
+                    table, th, td {{
+                        border: 1px solid black;
+                    }}
+                    caption {{
+                        text-align: center;
+                    }}
+                </style>
+            </head>
+            <body>
+                <input type="button" id="retour" onclick="window.location.href='http://127.0.0.1:8080/templates/menu1.html'" value="Back">
+                <h1>Liste des nom et value</h1>
+                <input type="button" onclick="window.location.href='http://127.0.0.1:8080/ADD'" value="Add User">
+                <input type="button" onclick="window.location.href='http://127.0.0.1:8080/delete_credential'" value="Delete User">
+                <input type="button" onclick="window.location.href='http://127.0.0.1:8080/modifier_credential'" value="User modification">
+                <table>
+                    <tr>
+                        <th>Nom</th>
+                        <th>Value</th>
+                    </tr>
+                    {}
+                </table>
+                <script>
+                    // Bloquer l'accès à la flèche retour
+                    window.history.pushState(null, null, '');
+                    window.addEventListener('popstate', function (event) {{
+                        window.history.pushState(null, null, '');
+                    }});
+                    
+                    // Bloquer l'accès à une nouvelle URL
+                    const url = "http://127.0.0.1:8080/ADD";
+                    if (window.location.href === url) {{
+                    console.log("test")
+                    window.location.replace("http://127.0.0.1:8080/BDD"); // rediriger l'utilisateur vers une page d'erreur
+                    }}
+                </script>
+            </body>
+        </html>
+        "#,
+        result
+        .into_iter()
+        .map(|(nom,value)| { // utilise la première valeur du tuple (le login)
+            format!(
+                r#"
+                    <tr>
+                        <td>{}</td>
+                        <td>{}</td>
+                    </tr>
+                "#,
+                nom,value
+            )
+        })
+        .collect::<String>()
+    );
+
+    html
+}
+
+
+
+async fn bdd(db: web::Data<Pool>) -> impl Responder {
+    let mut conn = db.get_conn().unwrap();
+
+    let query = "SELECT nom , value FROM credential";
+    let result = conn.query_map(query, |(nom, value)| (nom, value)).unwrap();
+    let html_content = see_bdd2(result);
+    HttpResponse::Ok().body(html_content)
+}
+
+//////////////////////////////////////////ADD/////////////////////////////////////////////////////////////
+
+fn ajouter_credential() -> &'static str {
+    "<!DOCTYPE html>
+    <html>
+        <head>
+            <meta charset=\"UTF-8\">
+            <title>BDD credential Bifrost</title>
+        </head>
+        <style>
+                body {
+                    margin-top: 20%;
+                    background-image: url('templates/css/img.png');
+                    background-repeat: no-repeat;
+                    background-size: cover;
+                }
+                h1 {
+                    text-align: center;
+                    color: #A52A2A;
+                    text-decoration: underline solid #A52A2A;
+                    font-family: Impact, 'Arial Black', Arial, Verdana, sans-serif;
+                    letter-spacing: 5px;
+                    font-size: 40px;
+                }
+                #my-form input {
+                    margin: 10px;
+                    background-color: white;
+                    color: black;
+                    border: none;
+                    padding: 10px 20px;
+                    font-size: 16px;
+                    cursor: pointer;
+                    border-radius: 5px;
+                }
+                #my-form button {
+                    margin: 10px;
+                    background-color: white;
+                    color: black;
+                    border: none;
+                    padding: 10px 20px;
+                    font-size: 20px;
+                    cursor: pointer;
+                    border-radius: 5px;
+                }
+                #my-form label {
+                    color: #FFFFFF;
+                    display: block;
+                    margin: 0 auto;
+                    font-size: 24px;
+                }
+                #my-form {
+                    text-align: center;
+                }
+            </style>
+        <body>
+        <h1>Add credentials</h1>
+        <form id=\"my-form\">
+            <label for=\"name\">Name:</label>
+            <input type=\"text\" id=\"name\" name=\"name\">
+            </br>
+            </br>
+            <label for=\"value\">Value :</label>
+            <input type=\"text\" id=\"value\" name=\"value\">
+            <br>
+            </br>
+            <button type=\"submit\">Add user</button>
+        </form>
+            <script>
+                const form = document.getElementById('my-form');
+                form.addEventListener('submit', (event) => {
+                    event.preventDefault();
+                    const formData = new FormData(form);
+                    fetch('/ADD', {
+                        method: 'POST',
+                        headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+                                 },
+                        body: new URLSearchParams(formData)
+    
+                    })
+                    .then(response => {
+                        // traitement de la réponse ici
+                        console.log(response.text());
+                        // redirection de l'utilisateur
+                        window.location.href = 'http://127.0.0.1:8080/BDD2';
+                    })
+                    .catch(error => console.error(error));
+                });
+        
+            </script>
+        </body>
+    </html>"
+}
+
+async fn add_credential() -> io::Result<impl Responder> {
+    let html = ajouter_credential();
+    Ok(HttpResponse::Ok().body(html))
+}
+
+
+async fn ajout_cred(db: web::Data<Pool>, form_data: web::Form<Credential>) -> HttpResponse {
+    let nom = form_data.name.to_string();
+    println!("Nom: {}", nom);
+    let value = form_data.value.to_string();
+    println!("Value: {}", value);
+    
+    let mut conn = db.get_conn().unwrap();
+    conn.exec_drop(
+        r"INSERT INTO credential (nom, value) VALUES (:nom, :value)",
+        params! {
+            "nom" => nom,
+            "value" => value,
+        },
+    ).unwrap();
+
+    HttpResponse::Found()
+        .header("Location", "/")
+        .finish()
+}
+
+///////////////////////////////////////////SUPPRIMER ///////////////////////////////////////////////////////////
+
+fn supprimer_credential() -> &'static str {
+    "<!DOCTYPE html>
+    <html>
+        <head>
+            <meta charset=\"UTF-8\">
+            <title>Delete credentials</title>
+        </head>
+        <style>
+                body {
+                    margin-top: 20%;
+                    background-image: url('templates/css/img.png');
+                    background-repeat: no-repeat;
+                    background-size: cover;
+                }
+                h1 {
+                    text-align: center;
+                    color: #A52A2A;
+                    text-decoration: underline solid #A52A2A;
+                    font-family: Impact, 'Arial Black', Arial, Verdana, sans-serif;
+                    letter-spacing: 5px;
+                    font-size: 40px;
+                }
+                #my-form input {
+                    margin: 10px;
+                    background-color: white;
+                    color: black;
+                    border: none;
+                    padding: 10px 20px;
+                    font-size: 16px;
+                    cursor: pointer;
+                    border-radius: 5px;
+                }
+                #my-form button {
+                    margin: 10px;
+                    background-color: white;
+                    color: black;
+                    border: none;
+                    padding: 10px 20px;
+                    font-size: 20px;
+                    cursor: pointer;
+                    border-radius: 5px;
+                }
+                #my-form label {
+                    color: #FFFFFF;
+                    display: block;
+                    margin: 0 auto;
+                    font-size: 24px;
+                }
+                #my-form {
+                    text-align: center;
+                }
+            </style>
+        <body>
+        <h1>Delete credentials</h1>
+        <form id=\"my-form\">
+            <label for=\"name\">Name :</label>
+            <input type=\"text\" id=\"name\" name=\"name\">
+            <label for=\"value\">Value:</label>
+            <input type=\"text\" id=\"value\" name=\"value\">
+            <br>
+            <button type=\"submit\">Delete</button>
+        </form>
+            <script>
+                const form = document.getElementById('my-form');
+                form.addEventListener('submit', (event) => {
+                    event.preventDefault();
+                    const formData = new FormData(form);
+                    fetch('/delete_credential', {
+                        method: 'POST',
+                        headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+                                 },
+                        body: new URLSearchParams(formData)
+    
+                    })
+                .then(response => {
+                    // traitement de la réponse ici
+                    console.log(response.text());
+                    // redirection de l'utilisateur
+                    window.location.href = 'http://127.0.0.1:8080/BDD2';
+                })
+                .catch(error => console.error(error));
+            });
+        
+            </script>
+        </body>
+    </html>"
+}
+
+async fn delete_credential() -> io::Result<impl Responder> {
+    let html = supprimer_credential();
+    Ok(HttpResponse::Ok().body(html))
+}
+
+
+async fn delete_cred(db: web::Data<Pool>, form_data: web::Form<Credential>) -> HttpResponse {
+    let nom = form_data.name.to_string();
+    println!("Nom: {}", nom);
+    let value = form_data.value.to_string();
+    println!("Value: {}", value);
+    
+    let mut conn = db.get_conn().unwrap();
+    conn.exec_drop(
+        r"DELETE FROM credential WHERE nom = :nom AND value = :value",
+        params! {
+            "nom" => nom,
+            "value" => value,
+        },
+    ).unwrap();
+
+    HttpResponse::Found()
+        .header("Location", "/")
+        .finish()
+}
+
+///////////////////////////////////////////MODIFIER///////////////////////////////////////////////////////////
+
+fn modify_credential() -> &'static str {
+    "<!DOCTYPE html>
+    <html>
+        <head>
+            <meta charset=\"UTF-8\">
+            <title>Credentials modification</title>
+        </head>
+        <style>
+                body {
+                    margin-top: 20%;
+                    background-image: url('templates/css/img.png');
+                    background-repeat: no-repeat;
+                    background-size: cover;
+                }
+                h1 {
+                    text-align: center;
+                    color: #A52A2A;
+                    text-decoration: underline solid #A52A2A;
+                    font-family: Impact, 'Arial Black', Arial, Verdana, sans-serif;
+                    letter-spacing: 5px;
+                    font-size: 40px;
+                }
+                #my-form input {
+                    margin: 10px;
+                    background-color: white;
+                    color: black;
+                    border: none;
+                    padding: 10px 20px;
+                    font-size: 16px;
+                    cursor: pointer;
+                    border-radius: 5px;
+                }
+                #my-form button {
+                    margin: 10px;
+                    background-color: white;
+                    color: black;
+                    border: none;
+                    padding: 10px 20px;
+                    font-size: 20px;
+                    cursor: pointer;
+                    border-radius: 5px;
+                }
+                #my-form label {
+                    color: #FFFFFF;
+                    display: block;
+                    margin: 0 auto;
+                    font-size: 24px;
+                }
+                #my-form {
+                    text-align: center;
+                }
+        </style>
+        <body>
+        <h1>Crendentials to modify </h1>
+        <form id=\"my-form\">
+            <label for=\"name\">Name :</label>
+            <input type=\"text\" id=\"name\" name=\"name\">
+            <label for=\"value\">Value:</label>
+            <input type=\"text\" id=\"value\" name=\"value\">
+            <br>
+            <button type=\"submit\">Modify</button>
+
+
+        </form>
+            <script>
+                const form = document.getElementById('my-form');
+                form.addEventListener('submit', (event) => {
+                    event.preventDefault();
+                    const formData = new FormData(form);
+                    fetch('/modifier_credential', {
+                        method: 'POST',
+                        headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+                                 },
+                        body: new URLSearchParams(formData)
+    
+                    })
+
+                    .then(response => {
+                        // traitement de la réponse ici
+                        console.log(response.text());
+                        // redirection de l'utilisateur
+                        window.location.href = 'http://127.0.0.1:8080/ADD2';
+                    })
+                    .catch(error => console.error(error));
+                });
+        
+            </script>
+        </body>
+    </html>"
+}
+
+
+async fn modifier_credential() -> io::Result<impl Responder> {
+    let html = modify_credential();
+    Ok(HttpResponse::Ok().body(html))
+}
+
+
+async fn modifier_cred(db: web::Data<Pool>, form_data: web::Form<Credential>) -> HttpResponse {
+    let nom = form_data.name.to_string();
+    println!("Nom: {}", nom);
+    let value = form_data.value.to_string();
+    println!("Value: {}", value);
+    
+    let mut conn = db.get_conn().unwrap();
+    conn.exec_drop(
+        r"DELETE FROM credential WHERE nom = :nom AND value = :value",
+        params! {
+            "nom" => nom,
+            "value" => value,
+        },
+    ).unwrap();
+
+    HttpResponse::Found()
+        .header("Location", "/")
+        .finish()
+}
+
+fn modify_credential2() -> &'static str {
+    "<!DOCTYPE html>
+    <html>
+        <head>
+            <meta charset=\"UTF-8\">
+            <title>Modification credentials</title>
+        </head>
+        <style>
+                body {
+                    margin-top: 20%;
+                    background-image: url('templates/css/img.png');
+                    background-repeat: no-repeat;
+                    background-size: cover;
+                }
+                h1 {
+                    text-align: center;
+                    color: #A52A2A;
+                    text-decoration: underline solid #A52A2A;
+                    font-family: Impact, 'Arial Black', Arial, Verdana, sans-serif;
+                    letter-spacing: 5px;
+                    font-size: 40px;
+                }
+                #my-form input {
+                    margin: 10px;
+                    background-color: white;
+                    color: black;
+                    border: none;
+                    padding: 10px 20px;
+                    font-size: 16px;
+                    cursor: pointer;
+                    border-radius: 5px;
+                }
+                #my-form button {
+                    margin: 10px;
+                    background-color: white;
+                    color: black;
+                    border: none;
+                    padding: 10px 20px;
+                    font-size: 20px;
+                    cursor: pointer;
+                    border-radius: 5px;
+                }
+                #my-form label {
+                    color: #FFFFFF;
+                    display: block;
+                    margin: 0 auto;
+                    font-size: 24px;
+                }
+                #my-form {
+                    text-align: center;
+                }
+        </style>
+        <body>
+        <h1>Enter new information</h1>
+        <form id=\"my-form\">
+            <label for=\"name\">Name :</label>
+            <input type=\"text\" id=\"name\" name=\"name\">
+            <label for=\"value\">Value:</label>
+            <input type=\"text\" id=\"value\" name=\"value\">
+            <br>
+
+            <button type=\"submit\">Add credential</button>
+
+        </form>
+            <script>
+                const form = document.getElementById('my-form');
+                form.addEventListener('submit', (event) => {
+                    event.preventDefault();
+                    const formData = new FormData(form);
+                    fetch('/ADD2', {
+                        method: 'POST',
+                        headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+                                 },
+                        body: new URLSearchParams(formData)
+    
+                    })
+                    
+                    .then(response => {
+                        // traitement de la réponse ici
+                        console.log(response.text());
+                        // redirection de l'utilisateur
+                        window.location.href = 'http://127.0.0.1:8080/BDD2';
+                    })
+                    .catch(error => console.error(error));
+                });
+            </script>
+        </body>
+    </html>"
+}
+
+async fn add_credential2() -> io::Result<impl Responder> {
+    let html = modify_credential2();
+    Ok(HttpResponse::Ok().body(html))
+}
+
+
+async fn ajout_credential2(db: web::Data<Pool>, form_data: web::Form<Credential>) -> HttpResponse {
+    let nom = form_data.name.to_string();
+    println!("Nom: {}", nom);
+    let value = form_data.value.to_string();
+    println!("Value: {}", value);
+    
+    let mut conn = db.get_conn().unwrap();
+    conn.exec_drop(
+        r"INSERT INTO credential (nom, value) VALUES (:nom, :value)",
+        params! {
+            "nom" => nom,
+            "value" => value,
+        },
     ).unwrap();
 
     HttpResponse::Found()
@@ -931,15 +1553,15 @@ fn changer() -> &'static str {
         </style>
         </head>
         <body>
-        <h1>Modifier User Bifrost</h1>
+        <h1>Change User Bifrost</h1>
         <form id=\"my-form\">
             <br>
-            <label class=\"label\" for=\"login\">User à modifier :</label>
+            <label class=\"label\" for=\"login\">User to modify :</label>
             <br>
             <br>
             <input class=\"input\" type=\"text\" id=\"login\" name=\"login\">
             <br>
-            <button class=\"button\" type=\"submit\">Modifier</button>
+            <button class=\"button\" type=\"submit\">Modify</button>
         </form>
             <script>
                 const form = document.getElementById('my-form');
@@ -1019,16 +1641,16 @@ async fn bifrost_mail(form_data: web::Form<Mail>) -> /*impl Responder*/std::resu
 
     //Code pour envoyer le mail
     let email = EmailBuilder::new()
-    .to("bifrost@mailfence.com")
+    .to("bifrost83000@gmail.com")
     .from(adresse)
-    .subject("Bonjour Bifrost Family")
+    .subject("Bonjour assistance")
     .text(message)
     .build()
     .unwrap();
 
-    let mut mailer = SmtpClient::new_simple("imap.mailfence.com")
+    let mut mailer = SmtpClient::new_simple("smtp.gmail.com")
         .unwrap()
-        .credentials(Credentials::new("bifrost".into(), "Bifrost1234!".into()))
+        .credentials(Credentials::new("bifrost83000".into(), "ypdq uxzk ueim wovs".into()))
         .transport();
 
     let result = mailer.send(email.into());
@@ -1056,27 +1678,24 @@ async fn main() -> io::Result<()> {
                         .finish()
                 })),
             )
-            // default
         .default_service(web::to(default_handler))
         .route("/showthis", web::post().to(showthis))
-        //.data(salt()).route("/index", web::get().to(index))
         .route("/connexion_user", web::get().to(index2))
         .route("/showthis2", web::post().to(showthis2))
         .route("/submit", web::post().to(on_submit_form))
         .route("/connexion_mdp", web::get().to(index3))
         .route("/submit", web::post().to(submit_form))
         .app_data(db_data.clone())
-            //.service(Files::new("/templates", "templates").show_files_listing())
-            //.service(web::resource("/ADD").route(web::get().to(add_user)).route(web::post().to(ajout)))
-            .route("/BDD", web::get().to(BDD))
-            .service(web::resource("/delete").route(web::get().to(delete_user)).route(web::post().to(delete)))
-            .service(web::resource("/change").route(web::get().to(change_user)).route(web::post().to(change)))
-            //.service(web::resource("/modifier").route(web::get().to(modifier_user)).route(web::post().to(modifier)))
-            //.service(web::resource("/ADD2").route(web::get().to(add_user2)).route(web::post().to(ajout2)))
-            //.service(web::resource("/assistance.html").route(web::post().to(mail)))
-            .service(web::resource("/assistance.html").route(web::get().to(assistance))
-                                      .route(web::post().to(bifrost_mail)))
-
+        .route("/BDD", web::get().to(BDD))
+        .service(web::resource("/delete").route(web::get().to(delete_user)).route(web::post().to(delete)))
+        .service(web::resource("/change").route(web::get().to(change_user)).route(web::post().to(change)))
+        .service(web::resource("/assistance.html").route(web::get().to(assistance)).route(web::post().to(bifrost_mail)))
+        .service(web::resource("/ADD").route(web::get().to(add_credential)).route(web::post().to(ajout_cred)))
+        .route("/BDD2", web::get().to(bdd))
+        .service(web::resource("/delete_credential").route(web::get().to(delete_credential)).route(web::post().to(delete_cred)))
+        .service(web::resource("/modifier_credential").route(web::get().to(modifier_credential)).route(web::post().to(modifier_cred)))
+        .service(web::resource("/ADD2").route(web::get().to(add_credential2)).route(web::post().to(ajout_credential2)))
+            
     })
     .bind(("127.0.0.1", 8080))?
     .workers(2)

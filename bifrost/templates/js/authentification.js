@@ -52,7 +52,7 @@
 		console.log(mdphash);
 		let hash = sha256(mdphash)
 		console.log(hash);
-		alert(hash);
+		//alert(hash);
 		var inputElement = document.getElementById("coco");
 		inputElement.value = hash;
 		var inputElement = document.getElementById("coco2");
