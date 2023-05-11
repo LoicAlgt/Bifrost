@@ -487,24 +487,13 @@ async fn on_submit_form(form: web::Form<MyForm>) -> /*impl Responder*/std::resul
   for aesfinit in selected_passwords5 {
   log_extrait_clefs_aes.push_str(&aesfinit.clefs);
   }
-  
-      println!("I'm the hashLOLO :{:?}", hash);
-      println!("ceci est le sel 2: {}", log_extrait_sel_backend);
-  println!("ceci est le password: {}", log_extrait_password);
-  println!("ceci est le sel-gcm: {}", log_extrait_sel_gcm);
-  println!("ceci est la clef-gcm: {}", log_extrait_clefs_aes);
+
   let y= log_extrait_sel_backend;
   let concat = hash.to_owned() + &y.to_string();
   let x = passwordhash(y ,concat);
   let aes = dechiffrement(log_extrait_clefs_aes, x , log_extrait_sel_gcm); 
-      
-      
-      
-      println!("ceci est le password entrée: {}", aes);   
-          
-      
-           
-      if log_extrait_password != aes{
+        
+    if log_extrait_password != aes{
       
           println!("oh tes fatiguer minot"); //insere la fonction retour la 
           let path_e: PathBuf ="./templates/erreur_mdp.html".into();
@@ -516,8 +505,6 @@ async fn on_submit_form(form: web::Form<MyForm>) -> /*impl Responder*/std::resul
       let path: PathBuf="./templates/connexion_reussi.html".into();
       Ok(NamedFile::open(path)?)}
   }
-
-
 
 //page3
 fn html() -> String {
