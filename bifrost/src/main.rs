@@ -529,15 +529,10 @@ fn html() -> String {
                     alert("Veuillez entrer un mot de passe.");
                     return false;
                 }}
-                else if (document.getElementsByName("hash_html")[0].value.length < 8) {{
-                    alert("Veuillez rentrer un mot de passe de plus de 8 caractères");
-                    return false;
-                }}
                 else {{
                     var mdp = document.getElementsByName("hash_html")[0].value ;
                     var mdphash = document.getElementsByName("hash_html")[0].value + "{sellallegreti_str}".toString();
                     let hash = sha256(mdphash)
-		            alert(hash);
                     let hash_input = document.getElementsByName("hash")[0];
                     hash_input.setAttribute("value", hash);
                     return true;
@@ -938,10 +933,10 @@ fn see_bdd2(result: Vec<(String,String)>) -> String {
             </head>
             <body>
                 <input type="button" id="retour" onclick="window.location.href='http://127.0.0.1:8080/templates/menu1.html'" value="Back">
-                <h1>Liste des nom et value</h1>
-                <input type="button" onclick="window.location.href='http://127.0.0.1:8080/ADD'" value="Add User">
-                <input type="button" onclick="window.location.href='http://127.0.0.1:8080/delete_credential'" value="Delete User">
-                <input type="button" onclick="window.location.href='http://127.0.0.1:8080/modifier_credential'" value="User modification">
+                <h1>Database credentials</h1>
+                <input type="button" onclick="window.location.href='http://127.0.0.1:8080/ADD'" value="Add credential">
+                <input type="button" onclick="window.location.href='http://127.0.0.1:8080/delete_credential'" value="Delete credential">
+                <input type="button" onclick="window.location.href='http://127.0.0.1:8080/modifier_credential'" value="Modification credential">
                 <table>
                     <tr>
                         <th>Nom</th>
